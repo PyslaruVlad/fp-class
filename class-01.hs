@@ -39,6 +39,8 @@ avg a b = (a + b)/2
 
   а) Вычислите в ghci среднее арифметическое следующих пар чисел: 332 и 723, 34.34 и 93.27.
      Впишите ответы:
+	527
+	63.805
 
   б) Напишите функцию avg3, вычисляющую среднее арифметическое трёх заданных чисел.
      Проверьте результаты её работы на двух тройках чисел.
@@ -46,12 +48,12 @@ avg a b = (a + b)/2
 -}
 
 avg3 :: Double -> Double -> Double -> Double
-avg3 a b c = undefined
+avg3 a b c = (a + b + c) / 3
 
 {-
    Результаты проверки:
 
-   ???
+   avg3 1 2 3 = 2.0
 
 -}
 
@@ -62,19 +64,19 @@ avg3 a b c = undefined
    обращая внимание на обозначения и приоритеты операций, стандартные функции,
    расстановку скобок:
 
-    2 + 3
-    mod 10 4
-    10 `mod` 4
-    True && 5 < 10
-    5 < 7 || 10 > 3
-    sqrt (-2)
-    sqrt (sqrt 16)
+    2 + 3 		= 5
+    mod 10 4 		= 2
+    10 `mod` 4 		= 2
+    True && 5 <	10 	= True
+    5 < 7 || 10 > 3 	= True
+    sqrt (-2) 		= NaN
+    sqrt (sqrt 16) 	= 2.0
     let x = 4 in (sin x)^2 + (cos x)^2
-    x
-    7^(-1)
+    x			= 1.0
+    7^(-1) 		
     error "AAAA!!!!"
-    12345^54321
-    2 < 3 || 9999954321^99912345 > 12345^54321
+    12345^54321 = Very Big Number
+    2 < 3 || 9999954321^99912345 > 12345^54321 = True
 
 -}
 
@@ -92,14 +94,14 @@ avg3 a b c = undefined
   классу типов Num (имеет экземпляр класса типов Num, является числовым типом).
 
   Определите и сохраните в этом файле типы следующих выражений:
-   5
-   5.0
-   sqrt 4
-   sqrt 4.0
-   2+3
-   5 < 7
-   if 2 > 3 then 7 else 5
-   5 > 6 && False
+   5		-	5 :: Num a => a
+   5.0		-	5.0 :: Fractional a => a
+   sqrt 4	-	sqrt 4 :: Floating a => a
+   sqrt 4.0	-	sqrt 4.0 :: Floating a => a
+   2+3		-	2+3 :: Num a => a
+   5 < 7	-	5<7 :: Bool
+   if 2 > 3 then 7 else 5 -	if 2>3 then 7 else 5 :: Num a => a
+   5 > 6 && False	-	5>6 && False :: Bool	
 
    Команда ":set +t" включает режим, при котором печатается тип каждого вычисляемого выражения.
    Команда ":set +s" включает режим, при котором печатается время вычисления каждого выражения.
@@ -111,25 +113,26 @@ avg3 a b c = undefined
 -- а) Удвоение значения заданного числа
 -- (объясните смысл типовой аннотации: ???)
 double :: Num a => a -> a
-double a = undefined
+double a = 2 * a
 
 -- б) Утроение заданного числа
 --    (типовую аннотацию и образцы параметров следует написать самостоятельно)
-triple = undefined
+triple :: Num a => a -> a
+triple a = 3 * a
 
 -- в) Определение наибольшего из трёх заданных целых чисел (можно воспользоваться стандартной
 --    двухаргументной функцией max).
 max3 :: Ord a => a -> a -> a -> a
-max3 = undefined
+max3 a b c = max a (max b c)
 
 {-
   Проверка:
 > max3 87 34 209
-???
+209
 > max3 22 28 30
-???
+30
 > max3 12 25 (-7)
-???
+25
 
 -}
 
@@ -137,19 +140,22 @@ max3 = undefined
 -- (пользоваться стандартными логическими операциями не следует, обратите внимание на
 --  образцы параметров функции, последняя строка -- "во всех остальных случаях").
 bothTrue :: Bool -> Bool -> Bool
-bothTrue True True = undefined
-bothTrue _  _ = undefined
+bothTrue True True = True
+bothTrue _  _ = False
 
 
 -- д) Функция, возвращающая True, если только один из её аргументов равен True,
 -- и False в противном случае (пользоваться стандартными логическими операциями не следует).
 oneTrue :: Bool -> Bool -> Bool
-oneTrue = undefined
+oneTrue True False = True
+oneTrue False True = True
+oneTrue _ _ = False
+
 
 -- е) Дана температура в градусах Фаренгейта. Вычислить соответствующую температуру
 -- в градусах Цельсия.
 f2c :: Double -> Double
-f2c = undefined
+f2c tf = (tf -32) * 5 / 9
 
 {-
    ж) Найти наибольший общий делитель двух целых чисел, пользуясь
@@ -158,12 +164,21 @@ f2c = undefined
       НОД(a, 0) = a.
 -}
 -- gcd' :: ???
-gcd' = undefined
+gcd' :: Integral a => a -> a -> a
+gcd' a 0 = a
+gcd' a b = gcd' b (mod a b) 
 
 -- з) Функция, возвращающая название дня недели по его номеру (от 1 до 7),
 --    если номер неправильный, генерируется исключение (функция error).
 dayOfWeek :: Int -> String
-dayOfWeek = undefined
+dayOfWeek 1 = "Mon"
+dayOfWeek 2 = "Tue"
+dayOfWeek 3 = "Wed"
+dayOfWeek 4 = "Thu"
+dayOfWeek 5 = "Fri"
+dayOfWeek 6 = "Sat"
+dayOfWeek 7 = "Sun"
+dayOfWeek _ = error "Number should be in range of 1 to 7"
 
 
 -- Далее типовые аннотации, если их нет, следует писать самостоятельно.
@@ -185,12 +200,20 @@ sign a
           4,    если x ≥ 2.
 -}
 
-eval_f = undefined
+eval_f :: (Ord a, Num a) => a -> a
+eval_f x 
+	| x <= 0 		= -x
+	| 0 < x && x < 2 	= x^2
+	| x >= 2		= 4
 
 -- б) Написать функцию, возвращающую текстовую характеристику ("hot", "warm", "cool", "cold")
 -- по заданному значению температуры в градусах Цельсия.
 describeTemperature :: Double -> String
-describeTemperature = undefined
+describeTemperature t
+	| t < 20	=	"cold"
+	| t < 25	=	"cool"
+	| t < 35 	= 	"warm"
+	| otherwise 	= 	"hot"
 
 {- 
    в) (*) Дан список температур в градусах Фаренгейта. Вывести для каждого значения
