@@ -229,38 +229,82 @@ describeTemperature t
 -- 7) Рекурсия
 
 -- Пример. Вычислить сумму всех целых чисел от 1 до n (где n >= 1):
+
+sum_n :: Int -> Int
 sum_n 1 = 1
 sum_n n
   | n > 1 = n + sum_n (n-1)
   | otherwise = error "n should be >= 1"
 
 -- а) Вычислить сумму всех целых чисел от a до b включительно.
-sum_ab = undefined
+
+sum_ab :: Int -> Int -> Int
+sum_ab a b
+	| a < b 	= a + sum_ab (a+1) b
+	| a == b 	= a
+	| otherwise	= error "a must be less then b"
 
 {-
    б) Числовая последовательность определяется следующим образом:
       a1 = 1, a2 = 2, a3 = 3, a_k = a_{k−1} + a_{k−2} − 2*a_{k−3}, k = 4, 5, ...
       Вычислить её n-й элемент.
 -}
-eval_a_n = undefined
+
+eval_a_n :: Int -> Int
+eval_a_n n
+	| n == 1	= 1
+	| n == 2	= 2
+	| n == 3	= 3
+	| n < 1		= error "n must be more or equals 1"
+	| otherwise 	= eval_a_n (n-1) + eval_a_n (n-2) - 2 * (eval_a_n (n-3))
 
 -- в) Вычислить, пользуясь рекурсией, n-ю степень числа a (n - целое):
-pow = undefined
+
+pow :: (Num a) => a -> Int -> a
+pow a n
+	| n == 0 	= 1
+	| n == 1	= a
+	| n < 0		= error "ну-ну"
+	| otherwise	= a * (pow a (n-1))
 
 -- г) Пользуясь ранее написанной функцией pow, вычислить сумму: 1^k + 2^k + ... + n^k.
-sum_nk = undefined
+
+sum_nk:: Int -> Int -> Int
+sum_nk n k 
+	| n < 1		= error "ну-ну"
+	| n == 1	= 1
+	| otherwise	= (pow n k) + (sum_nk (n-1) k)
 
 -- д) Сумма факториалов чисел от 1 до n.
+
+sum_fact :: (Num a, Ord a) => a -> a
 sum_fact 1 = 1
-sum_fact n = undefined
+sum_fact n = (fact n) + sum_fact (n-1)
   where
-    fact n = undefined
+   	fact n 
+			| n > 1		= n * (fact (n-1))
+			| n == 1	= 1
+			| otherwise 	= error "ну-ну"
 
 -- е) Количество цифр целого числа
-number_digits = undefined
+
+number_digits :: Int -> Int
+number_digits 0 = 0
+number_digits n = 1 + number_digits (n `div` 10)
 
 -- ж) Проверить, является ли заданное число простым.
-isPrime = undefined
+
+isPrime :: Int -> Bool
+isPrime n
+	| n <= 0	 	 			= error "число должно быть больше 0"
+	| (n > 0) && (n < 4)	= True
+	| otherwise 			= recStep (n-1)
+	where
+		isNotDivided a b 	= (a `mod` b) /= 0
+		recStep p
+			| p == 1		= True
+			| otherwise	= (isNotDivided n p) && recStep (p-1) 
+		
 
 -- 8) Разное
 
@@ -272,6 +316,9 @@ isPrime = undefined
   а 1200 и 2000 — являются).
 -}
 
-nDays year = undefined
+nDays :: Int -> Int
+nDays year
+	| isLeap		= 366
+	| otherwise	= 365
   where
-    isLeap = undefined
+    isLeap = ((year `mod` 4) == 0) && (((year `mod` 100) /= 0) || ((year `mod` 400) == 0))
