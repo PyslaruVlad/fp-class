@@ -28,7 +28,7 @@
 -- Некоторые основные функции переписанные с использование fold
 reverse' = foldl (flip (:)) []
 length' = foldl (\ acc x -> acc +1) 0
-tail' (a:arr) = arr
+tail' (a:arr) = arr -- здесь и в следующей конечно не особо нужны fold :)
 head' (a:arr) = a
 map' func = foldr (\ x acc -> (func x):acc) []
 
