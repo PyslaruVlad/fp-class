@@ -38,14 +38,13 @@ vecProdMod (Vector (Point ax ay) (Point axe aye))
            (Vector (Point bx by) (Point bxe bye))
                 = (axe-ax)*(bye-by) - (aye-ay)*(bxe-bx)
 vecModule :: Vector -> Double
-vecModule (Vector (Point x1 y1) (Point x2 y2)) = sqrt ((x2-x1)^2 + (y2-y1)^2)
+vecModule (Vector (Point x1 y1) (Point x2 y2)) = sqrt $ (x2-x1)^2 + (y2-y1)^2
 
 calcForVectors :: Vector -> Vector -> Direction
 calcForVectors v1 v2
     | vecProdMod v1 v2 > 0  = LeftRotation
     | vecProdMod v1 v2 < 0  = RightRotation
     | otherwise             = SameDirection
-    where
         
 
 calcForPoints :: [Point] -> Direction
@@ -77,16 +76,21 @@ directions_test2 = directions [(Point 0.9 60.923), (Point (-12.39) 5), (Point 10
   http://www.youtube.com/watch?v=BTgjXwhoMuI
 -}
 
-{-
+
 pointsList :: Int -> [Point]
 pointsList 1 =  [Point 2 2, Point 1 1, Point 4 3, Point 1 2, Point 2 5]
-pointsList 2 =  [Point 2 2, Point 1 1, Point 4 3, Point 1 2, Point 2 5]
-pointsList 3 =  [Point (-4) 5.1, Point 0 4.5 , Point (-1.9) (-1.002)
-                , Point (-3.5) (-0.05), Point 3 (-1.7), Point 0 0
+pointsList 2 =  [Point 0 0, Point (-3) (-3), Point 1.1 (-4), Point  0.5 1
+                , Point (-2.5) 4, Point 0 1, Point 2 2]
+pointsList 3 =  [Point (-4) 6, Point 0 6 , Point (-1.9) (-1.002)
+                , Point (-3.5) (-0.05), Point 3 (-1.7), Point 0 1
                 , Point (-3) 4, Point (-1) 1, Point 2 1 , Point 3 4]
 pointsList _ = error "больше наборов точек я не придумал"
 
-
+angAndMod p zeroP = (negate $ asin $ vPM/pM, vecModule (Vector zeroP p))
+    where
+        pM  = (vecModule $ zeroVec zeroP) * (vecModule (Vector zeroP p))
+        vPM = vecProdMod (zeroVec zeroP) (Vector zeroP p)
+        zeroVec zP = Vector zP (Point (x zP+1) (y zP))
 
 sortPoints :: Point -> Vector -> [Point] -> [Point]
 sortPoints zeroP zeroVec = takePoints . foldr insertPoint [] 
@@ -94,9 +98,9 @@ sortPoints zeroP zeroVec = takePoints . foldr insertPoint []
         angAndMod p = (asin $ vPM/pM, vecModule (Vector zeroP p))
             where
                 pM  = (vecModule zeroVec) * (vecModule (Vector zeroP p))
-                vPM = vecProdMod (zeroVec) (Vector zeroP p)
+                vPM = vecProdMod zeroVec (Vector zeroP p)
         insertPoint p [] = [(fst $ angAndMod p, snd $ angAndMod p, p)]
-        insertPoint p (curP@(a,m,pp):acc)
+        insertPoint p (curP@(a,m,_):acc)
             | angP > a  = curP:insertPoint p acc
             | angP < a  = (angP, modP, p):curP:acc
             | modP > m  = curP:insertPoint p acc
@@ -106,18 +110,43 @@ sortPoints zeroP zeroVec = takePoints . foldr insertPoint []
         takePoints = foldr (\ (_,_,p) acc -> p:acc) []
 
 
-sortPointsList :: [Point] -> (Point, [Point])
-sortPointsList list = (bp, sortPoints bp (zeroVec bp) newList)
+sortedList :: [Point] -> [Point]
+sortedList list = bp : sortPoints bp (zeroVec bp) newList
     where
         botomPoint = foldr1 (\ p acc -> if (y p) < (y acc) then p else acc)
         (bp, newList) = (botomPoint list, filter (/= bp) list)
-        zeroVec zeroP = Vector zeroP (Point (x zeroP) (y zeroP +1))
+        zeroVec zeroP = Vector zeroP (Point ((x zeroP)) (y zeroP+1))
         
 
 graham_scan :: [Point] -> [Point]
-graham_scan = undefined
--}
+graham_scan list = reverse $ getRight ([l1,bp], ls)
+    where
+        newList@(bp:l1:ls) = (sortedList list)
+        nRot (c:b:a:ps) = calcForPoints [a,b,c]
+        getRight (la, (pc:psl)) 
+            | psl  == []                    = pc:la
+            | nRot (pc:la) == LeftRotation  = getRight (procDel pc la, psl)
+            | otherwise                     = getRight (pc:la, psl)
+        procDel pc [pb,pa] = [pc,pb,pa]
+        procDel pc a@(pb:pa:lst)
+            | nRot (pc:a) == LeftRotation = procDel pc (pa:lst)
+            | otherwise = (pc:a)
+    
 
 {-
   5. Приведите несколько примеров работы функции graham_scan.
 -}
+
+                
+answer :: Int -> [Point]
+answer 1 = [Point 1 1, Point 4 3, Point 2 5, Point 1 2]
+answer 2 = [Point 1.1 (-4), Point 2 2, Point (-2.5) 4, Point (-3) (-3)]
+answer 3 = [Point 3 (-1.7), Point 3 4, Point 0 6, Point (-4) 6
+           , Point (-3.5) (-0.05), Point (-1.9) (-1.002)]
+answer _ = error "я не придумал еще ответ на несуществующий вопрос"
+
+
+-- Вызываейте любую от 1 до 3 
+grahamScanTest i = (answer i ==) $  graham_scan $ pointsList i
+
+
