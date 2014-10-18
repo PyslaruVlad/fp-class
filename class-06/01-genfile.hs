@@ -1,4 +1,4 @@
-{-
+{-  
   В параметрах командной строки заданы целое число N, текстовая строка и имя файла.
   Создать файл с заданным именем, содержащий N-кратное повторение заданной строки.
 
@@ -10,8 +10,10 @@
 import System.Environment
 
 createFile :: Int -> String -> FilePath -> IO ()
-createFile n s fname = undefined
+createFile n s fname = writeFile fname (take q $ cycle newStr)
+    where
+        (q, newStr) = (n * length newStr, s++"\n")
 
 main = do
-  [n_str, text, fname] <- getArgs
-  createFile (read n_str) text fname
+    [n_str, text, fname] <- getArgs
+    createFile (read n_str) text fname

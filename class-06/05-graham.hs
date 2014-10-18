@@ -9,5 +9,29 @@
 -}
 
 import GrahamScan
+import System.Environment
 
-main = undefined
+readPoints :: String -> [Point]
+readPoints str = foldr readLine [] $ lines str
+    where
+        readLine ln acc =
+            let (x:y:_) = map read $ words ln :: [Double]
+            in (Point x y : acc)
+
+writePoints :: [Point] -> String
+writePoints =  foldr addP ""
+    where
+        addP (Point x y) acc = (show x)++" "++(show y)++"\n"++acc
+
+main = do
+    [inpName, outName] <- getArgs
+    content <- readFile inpName
+    let 
+        pnts = graham_scan $ readPoints content
+    writeFile outName $ writePoints pnts
+    putStr "Хотите вывести овтет в консоль?\n(напишите y или"
+    putStr " просто нажмите enter в противном случае)\n"
+    input <- getLine
+    if (input == "y")
+        then putStr $ show pnts ++ "\n"
+        else return ()
