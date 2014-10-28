@@ -117,24 +117,20 @@ test_proccessMatrices 2 = matrixTest $ proccessMatrices_nonLin mF sF
 
 type MatrixStore a = Map.Map String (Matrix a)
 type CommandType a = [String] -> (MatrixStore a) -> IO (MatrixStore a)
-type ParseType = [String] -> [String]
-type TupleOfCommands a = (CommandType a, ParseType)
-
 
 loadFrom_com :: Read a => CommandType a
-loadFrom_com [strName, fName] mStore = do
+loadFrom_com [varName, fName] mStore = do
     contents <- readFile fName
     let
         rm = readMatrix contents
-    return $ Map.insert strName rm mStore
+    return $ Map.insert varName rm mStore
 
 calcAs_com :: Num a => CommandType a
-calcAs_com (strName:funcName:opers) mStore = do
+calcAs_com (varName:funcName:opers) mStore = do
     let
         ms = foldr (\ str acc -> (Map.!) mStore str : acc) [] opers
         mo = calcFunc funcName ms
-        newStore = Map.insert strName mo mStore
-    return newStore 
+    return $ Map.insert varName mo mStore
     
 calcFunc :: Num a => String -> [Matrix a] -> Matrix a
 calcFunc "PLUS" = foldl1 (proccessMatrices_lin (+))
@@ -148,7 +144,13 @@ saveTo_com [varName, fName] mStore = do
     writeFile fName $ writeMatrix mw
     return $ Map.delete varName mStore
 
--- Парсинг строки аргументов для каждого из типов комманд.
+{- 
+    Парсинг строки аргументов для каждого из типов комманд.
+    Не придумал ничего лучше, ибо "тип" команды определяется по первому слову а дальше
+    может быть любая "белиберда" в перемешку с полезностями.
+-}
+
+type ParseType = [String] -> [String]
 
 loadFrom_parse :: ParseType
 loadFrom_parse (varName:from:fname:_) = [varName, fname]
@@ -161,15 +163,13 @@ saveTo_parse (varName:to:fname:_) = [varName, fname]
 
 -- Отображение имен команд на функции команд.
 
+type TupleOfCommands a = (CommandType a, ParseType)
+
 comandsByName :: (Read a, Show a, Num a) => Map.Map String (TupleOfCommands a)
 comandsByName = Map.fromList
     [("LOAD", (loadFrom_com, loadFrom_parse))
     ,("CALC", (calcAs_com, calcAs_parse))
     ,("SAVE", (saveTo_com, saveTo_parse))]
-    
-
-
-
 
 
 
@@ -202,5 +202,4 @@ main = do
     contents <- readFile scriptName
     let initStore = Map.empty :: MatrixStore Double
     interpFileCycle initStore $ lines contents
-    return ()
-
+    return ()   
