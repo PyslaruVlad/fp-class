@@ -5,11 +5,23 @@
 -}
 
 import System.Environment
+import qualified Data.Set as Set
 
-readNumFile :: Num a => FilePath -> IO [a]
-readNumFile = undefined
+-- добавил сюда Read. Надеюсь оправданно.
+readNumFile :: (Num a, Read a) => FilePath -> IO [a]
+readNumFile name = do 
+    contents <- readFile name
+    let
+        ans = map read $ concatMap words $ lines contents
+    return ans
 
-solve :: Num a => [[a]] -> (Int, [a])
-solve = undefined
+
+
+solve :: (Num a, Ord a) => [[a]] -> (Int, [a])
+solve = formAns . countInts . (map Set.fromList)
+    where
+        formAns xs = (length xs, xs)
+        fF = Set.intersection
+        countInts (s:ss) = Set.toList $ foldr fF s ss
 
 main = getArgs >>= mapM readNumFile >>= print.solve
