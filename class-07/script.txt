@@ -1,0 +1,6 @@
+load a from m1.txt
+load b from m2.txt
+load c from m3.txt
+calc d as plus a b
+calc d as mult c d
+save d to m4.txt
