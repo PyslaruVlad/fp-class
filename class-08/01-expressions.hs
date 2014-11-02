@@ -20,7 +20,7 @@ eval (e1 `Mul` e2) = eval e1 * eval e2
 -}
 
 instance Eq Expr where
-  (==) = undefined
+    e1 == e2 = eval e1 == eval e2
 
 {-
   Реализуйте для этого типа экземпляр класса типов Show так,
@@ -29,8 +29,16 @@ instance Eq Expr where
   что все числа в выражении положительные.
 -}
 
+data Operation = A | M
+
+showFunc :: Expr -> Operation -> String
+showFunc (I n) _ = show n
+showFunc (e1 `Add` e2) A = (showFunc e1 A)++"+"++(showFunc e2 A)
+showFunc (e1 `Add` e2) M = "("++(showFunc e1 A)++"+"++(showFunc e2 A)++")"
+showFunc (e1 `Mul` e2) _ = (showFunc e1 M)++"*"++(showFunc e2 M)
+
 instance Show Expr where
-  show = undefined
+    show e = showFunc e A
 
 -- Тесты
 test = all (== expr 4) exprs
@@ -47,3 +55,7 @@ test = all (== expr 4) exprs
 {-
   Напишите экземпляр класса типов Ord, который сравнивает выражения по их значению.
 -}
+
+instance Ord Expr where
+    e1 < e2  = eval e1 < eval e2
+    e1 <= e2 = e1 < e2 || e1 == e2
