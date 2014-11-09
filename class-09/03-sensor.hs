@@ -1,5 +1,7 @@
+{-# LANGUAGE RankNTypes, NoMonomorphismRestriction #-}
 import System.Environment
 import Data.Monoid
+import Data.Maybe
 
 {-
   Некоторый датчик генерирует по пять сигналов в сутки, часть из которых
@@ -15,12 +17,16 @@ type SensorData = [SensorValue]
    значений, полученных от датчика. -}
 
 getData :: String -> SensorData
-getData = undefined . lines
+getData = map eval . lines
+    where
+        eval "-" = Nothing
+        eval strNum = Just $ read strNum 
 
 {- Напишите функцию, группирующую данные по суткам. -}
 
 dataByDay :: SensorData -> [SensorData]
-dataByDay = undefined
+dataByDay [] = []
+dataByDay dat = take 5 dat : (dataByDay $ drop 5 dat)
 
 {-
   Посчитайте минимальное значение среди показаний датчика,
@@ -36,8 +42,10 @@ dataByDay = undefined
 -}
 
 minData1 :: Bool -> [SensorData] -> Int
-minData1 needFirst = minimum . undefined
+minData1 True = fromJust . getFirst . minimum . map (mconcat . map First)
+minData1 False = fromJust . getLast . minimum . map (mconcat . map Last)
 
+    
 {-
   Посчитайте минимальное значение среди данных,
   полученных:
@@ -52,14 +60,21 @@ minData1 needFirst = minimum . undefined
 -}
 
 minData2 :: Bool -> [SensorData] -> Int
-minData2 needSum = minimum . undefined
+minData2 True =  getSum . minimum . 
+    map (mconcat . map (Sum . fromJust) . filter isJust)
+minData2 False =  getProduct . minimum . 
+    map (mconcat . map (Product . fromJust) . filter isJust)
 
 {- Попробуйте объединить две предыдущие функции в одну. -}
 
 data SensorTask = NeedFirst | NeedLast | NeedSum | NeedProduct
 
 minData :: SensorTask -> [SensorData] -> Int
-minData st = minimum . undefined
+minData NeedFirst = minData1 True
+minData NeedLast = minData1 False
+minData NeedSum = minData2 True
+minData NeedProduct = minData2 False
+
 
 {-
   Пользуясь моноидами All, Any и любыми другими, выясните следующую информацию:
@@ -74,7 +89,63 @@ minData st = minimum . undefined
   Постарайтесь ответить на все вопросы, написав одну функцию.
 -}
 
+countWith :: Monoid m => (m -> Bool) -> ([a] -> [m]) -> [[a]] -> Int 
+countWith predicate construct = length . filter (predicate . mconcat . construct)
+
+data Parameters = One Int | Two Int Int
+        
+task :: Parameters -> [SensorData] -> Int
+task (One 1) = countWith getAll (map (All . isNothing))
+task (One 2) = countWith getAll (map (All . isJust))
+task (One 3) = countWith getAny (map (Any . isJust))
+task (Two 4 n) = countWith ((> n) . getSum) (map (Sum . fromJust) . filter isJust)
+task (Two 5 n) = countWith ((> n) . getProduct) (map (Product . fromJust) . filter isJust)
+task (Two 6 n) = countWith (getAns n . getFirst) (map First)
+task (Two 7 n) = countWith (getAns n . getLast) (map Last)
+    
+getAns :: Ord a => a -> Maybe a -> Bool
+getAns _ Nothing = False
+getAns n (Just a) = a > n 
+
+
+
+
+
+instance Show Parameters where
+    show (One i) = show i
+    show (Two i _) = show i
+
+printAns :: [SensorData] -> (Parameters, String) -> IO ()
+printAns d (p,m) = do
+    putStr $ (show p)++") "++m++": "
+    print $ task p d
+    
+makeParameters :: Int -> [Parameters]
+makeParameters n = onePart ++ twoPart
+    where
+        onePart = map One [1..3]
+        twoPart = map (flip Two n) [4..7]
+
+msg :: Int -> String
+msg 1 = "Ни одного показания"
+msg 2 = "Все показания"
+msg 3 = "Хотя бы одно показание"
+msg 4 = "Сумма превосходит"
+msg 5 = "Произведение превосходит"
+msg 6 = "Первое превосходит"
+msg 7 = "Последнее превосходит"
+
+-- пример: 
+-- :main 03-file1.txt 3
 main = do
   fname <- head `fmap` getArgs
   sData <- getData `fmap` readFile fname
-  undefined
+  let
+    dData = dataByDay sData
+  (_:paramStr:_) <- getArgs
+  let 
+    p = read paramStr
+    params = makeParameters p
+    msgs = map msg [1..7]
+    args = zip params msgs
+  mapM_ (printAns dData) args

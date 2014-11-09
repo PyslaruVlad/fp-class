@@ -1,4 +1,6 @@
 import System.Environment
+import System.Random
+import Data.Functor
 
 {-
   Напишите функцию reduce, принимающую один целочисленный аргумент a и возвращающую 0,
@@ -7,15 +9,18 @@ import System.Environment
 -}
 
 reduce :: Integral a => a -> a
-reduce = undefined
+reduce a
+    | a `mod` 3 == 0    = 0
+    | odd a             = a * a
+    | otherwise         = a * a * a
 
 {-
   Напишите функцию, применяющую функцию reduce заданное количество раз к значению в контексте,
-  являющемся функтором:
+  являющимся функтором:
 -}
 
 reduceNF :: (Functor f, Integral a) => Int -> f a -> f a
-reduceNF = undefined
+reduceNF n fa = foldr fmap fa $ replicate n reduce
 
 {-
   Реализуйте следующие функции-преобразователи произвольным, но, желательно, осмысленным и
@@ -23,17 +28,33 @@ reduceNF = undefined
 -}
 
 toList :: Integral a => [(a, a)]  -> [a]
-toList = undefined
+toList = fmap (\ (a, b) -> gcd a b)
 
 toMaybe :: Integral a => [(a, a)]  -> Maybe a
-toMaybe = undefined
+toMaybe [] = Nothing
+toMaybe ls
+    | finAcc == 0   = Nothing
+    | otherwise     = Just finAcc
+    where
+        finAcc = foldl (\ acc (x,y) -> acc + min x y) 0 ls
 
 toEither :: Integral a => [(a, a)]  -> Either String a
-toEither = undefined
+toEither [] = Left "Empty list"
+toEither ls
+    | finAcc == 0   = Left "Null result"
+    | otherwise     = Right finAcc
+    where
+        finAcc = foldl (\ acc (x,y) -> acc + gcd x y) 0 ls
 
 -- воспользуйтесь в этой функции случайными числами
-toIO :: Integral a => [(a, a)]  -> IO a
-toIO = undefined
+toIO :: (Integral a, Random a) => [(a, a)]  -> IO a
+toIO ls = do
+    gen <- newStdGen
+    let
+        func (acc, g) (x, y) = (newVal + acc, newG)
+            where
+                (newVal,newG) = randomR (min x y, max x y) g
+    return $ fst $ foldl func (1, gen) ls
 
 {-
   В параметрах командной строки задано имя текстового файла, в каждой строке
@@ -45,19 +66,48 @@ toIO = undefined
 -}
 
 parseArgs :: [String] -> (FilePath, Int)
-parseArgs = undefined
+parseArgs (fp:numStr:_) = (fp, read numStr)
 
 readData :: FilePath -> IO [(Int, Int)]
-readData = undefined
+readData fp = fmap (makePairs . lines) $ readFile fp
+    where
+        makePairs = foldl mkP []
+        mkP acc str = flip (:) acc $ pair $ map read $ words str
+        pair (a:b:_) = (a,b)
 
 main = do
   (fname, n) <- parseArgs `fmap` getArgs
   ps <- readData fname
-  undefined
+  putStr "List: "
+  print $ reduceNF n (toList ps)
+  putStr "Maybe: "
+  print $ reduceNF n (toMaybe ps)
+  putStr "Either: "
   print $ reduceNF n (toEither ps)
+  putStr "IO: "
   reduceNF n (toIO ps) >>= print
 
 {-
   Подготовьте несколько тестовых файлов, демонстрирующих особенности различных контекстов.
   Скопируйте сюда результаты вызова программы на этих файлах.
+  
+    *Main> :main 02-file1.txt 2
+    List: [1,512,0,1,1]
+    Maybe: Just 7890481
+    Either: Right 14641
+    IO: 88529281
+
+    *Main> :main 02-file2.txt 1
+    List: [1,8,1,0,1,1]
+    Maybe: Just (-10648)
+    Either: Right 0
+    IO: 2515456
+
+    *Main> :main 02-file3.txt 3
+    List: [1,134217728,134217728]
+    Maybe: Just 0
+    Either: Right 390625
+    IO: -6250996282790248448
+
 -}
+

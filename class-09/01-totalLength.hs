@@ -1,11 +1,12 @@
 import System.Environment
+import Data.Functor
 
 {-
   Написать функцию, которая по заданному списку строк возвращает сумму длин всех строк.
 -}
 
 totalLength :: [String] -> Int
-totalLength = undefined
+totalLength = sum . map length 
 
 {-
   Написать функцию, которая по заданному символу и целому числу n строит список строк,
@@ -13,7 +14,8 @@ totalLength = undefined
 -}
 
 build1 :: Char -> Int -> Maybe [String]
-build1 = undefined
+build1 _ 0 = Nothing
+build1 c n =  fmap (fmap $ flip replicate c) $ Just [1..n]
 
 {-
   Написать функцию, аналогичную по возможностям функции build1, но возвращающую при этом
@@ -25,7 +27,12 @@ build1 = undefined
 -}
 
 build2 :: Char -> Int -> Either String [String]
-build2 = undefined
+build2 _ 0 = Left "n = 0"
+build2 'V' _ = Left "Norsefire issued the order that sybmol 'V' is forbidden."
+build2 c n
+    | n> 100    = Left "n > 100"
+    | otherwise = Right $ map (flip replicate c) [1..n]
+
 
 {-
   Параметрами командной строки являются имя файла, символ, целое число.
@@ -39,5 +46,27 @@ build2 = undefined
      Maybe и Either String как функторов).
 -}
 
+task :: Int -> IO ()
+task 1 = putStr "Количество символов, введенных вами: " 
+    >> fmap (show . totalLength) getArgs >>= putStrLn 
+task 2 = putStr "Количество символов, в файле: "
+    >> getArgs >>= fmap (show . totalLength . lines) . readFile . head
+    >>= putStrLn
+task 3 = do
+    (_:cStr:nStr:_) <- getArgs
+    let
+        (c:_) = cStr
+        n = read nStr
+        ansFunc f = fmap totalLength $ f c n 
+        ans1 = ansFunc build1
+        ans2 = ansFunc build2
+    putStr "Результаты третьего задания: "
+    putStr $ show ans1
+    putStr " и "
+    putStrLn $ show ans2
+
+
 main = do
-  undefined
+    task 1
+    task 2
+    task 3
