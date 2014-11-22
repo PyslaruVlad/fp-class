@@ -1,0 +1,9 @@
+multiplier=3
+
+avadakedavra
+
+summand=99
+
+divisor
+
+divisor=3
