@@ -7,3 +7,5 @@ summand=99
 divisor
 
 divisor=3
+
+summand=error
