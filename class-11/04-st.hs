@@ -37,9 +37,6 @@ args 2 = [10,9..1]
 args 3 = [1,11,1,1,1,1,1,11,1]
 args 4 = [456,2,7,8,32,436,0,2,-0,-15,67]
 
-compareZip :: ZipList [Int] -> ZipList [Int] -> Bool
-compareZip l1 l2 = and $ getZipList $ (==) <$> l1 <*> l2
-
 checkSorting = bubble && insertion && quick
     where
         simple = map (sortBy customCompare) lists
