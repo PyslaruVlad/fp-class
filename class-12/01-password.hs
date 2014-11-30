@@ -67,7 +67,7 @@ main = do
     putStr "Сохранение завершено. Текущий пароль: "
     print $ fromJust val
     putStr "Установлен после попыток: "
-    print $ reverse log
+    print $ tail $ reverse log
 
 
 

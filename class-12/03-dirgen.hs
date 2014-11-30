@@ -8,4 +8,14 @@
   разработанного приложения.
 -}
 
+import HaskellFS
+import System.Random
+import Data.Monoid
+import Control.Monad
+import Control.Monad.Trans
+import Control.Monad.Trans.Maybe
+import Control.Monad.State
+import Control.Monad.Writer
+import Control.Monad.Reader
+
 main = undefined
