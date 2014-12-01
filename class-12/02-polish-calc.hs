@@ -22,7 +22,6 @@
    с журналом типа Sum Int).
 -}
 
-
 import Control.Monad
 import Control.Monad.State
 import Control.Monad.Trans
