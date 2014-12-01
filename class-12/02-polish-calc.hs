@@ -130,16 +130,12 @@ askVarVals (v:vs) = do
     tell [(v, read val)]
     askVarVals vs
 
-findVal :: [(String, Int)] -> String -> Maybe Int
-findVal dict w = foldr turnMaybe Nothing dict
-    where turnMaybe (dw, dv) acc = (if w == dw then Just dv else Nothing) `mplus` acc
-
 main = do
     putStr "Введите выражние для вычисления: "
     expr <- words `liftM` getLine
     let vars = filter (not . isCorrectSymbol (\_ -> Nothing)) expr
     varVals <- execWriterT $ askVarVals vars
-    let (val, acts) = newEvalRPN (findVal varVals) expr
+    let (val, acts) = newEvalRPN (flip lookup varVals) expr
     if isNothing val
     then putStrLn "Выражние не удалось решить."
     else do

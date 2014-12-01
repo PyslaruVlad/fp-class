@@ -8,8 +8,6 @@
   разработанного приложения.
 -}
 
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 import System.Environment
 import System.Random
 import System.Directory
@@ -96,13 +94,15 @@ runGenerator cnfg initDir = evalStateT (runReaderT generator cnfg) initState
 
 
 
--- Уж очень не хочется вводить это все в консоли.
+-- Параметры.
 
 defFileName = ((3, 5), ('A','z'))
 defDirName = ((3, 5), ('A','z'))
 defContent = ((15, 30), (' ','~'))
 defaultConfig = GenConfig defFileName defContent defDirName (4, 4) (3, 3) 2
 
+-- Результаты runGenerator на defaultConfig и проверка с использованием count.hs 
+-- вроде бы говорят об одном и том же.
 -- Протестировать программу можно непосредственно.
 
 main = do
