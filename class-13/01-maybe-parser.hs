@@ -23,7 +23,6 @@ instance MonadPlus Parser where
   p `mplus` q = Parser (\ s -> msum $ apply <$> [p,q] <*> [s])
 
 
-
 -- Простенькие тесты.
 
 getc :: Parser Char

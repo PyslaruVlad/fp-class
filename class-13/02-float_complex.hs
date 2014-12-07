@@ -51,6 +51,8 @@ complexList3 :: Parser [(Float, Float)]
 complexList3 = bracket "[" "]" $ sepBy tok (symbol ",")
   where tok = token complex `mplus` (token float >>= \ a -> return (a,0))
 
+
+
 -- Тесты.
 
 testFloat :: Bool
