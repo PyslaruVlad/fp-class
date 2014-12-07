@@ -53,7 +53,6 @@ complexList3 = bracket "[" "]" $ sepBy tok (symbol ",")
 
 
 
-
 -- Тесты.
 
 testFloat :: Bool
