@@ -11,10 +11,10 @@ import Control.Monad
    проанализировать).
 -}
 
-data Expr = Con Float | Bin Op Expr Expr
-  deriving Show
+data Expr = Real Float | Complex Float Float | Bin Op Expr Expr
+  deriving (Show, Eq)
 data Op = Plus | Minus | Mul | Div
-  deriving Show
+  deriving (Show, Eq)
 
 {-
 expr   ::= term {addop term}*
@@ -38,49 +38,52 @@ expr = token (term >>= rest addop term)
     binop (s1, cons1) (s2, cons2) =
           (symbol s1 >> return cons1) <|>
           (symbol s2 >> return cons2)
-    constant = Con `liftM` float
+    constant = (Real `liftM` float) <|> complex
 
 
--- Решение.
-
--- Из второго задания.
+-- Парсер вещественных чисел.
 float :: Parser Float
 float = do
   let
     posSum = foldl (\ acc n -> 10*acc + fromIntegral n) 0
     negSum = foldr (\ n acc -> 0.1*(acc + fromIntegral n)) 0
   sign <- optional True $ symbol "-" >> return False
-  pos <- posSum `liftM` many digit
-  char '.'
-  neg <- negSum `liftM` many digit
+  pos <- posSum `liftM` many1 digit
+  neg <- (char '.' >> negSum `liftM` many1 digit) `mplus` return 0
   return $ if sign then pos + neg else -(pos + neg)
 
--- Данные для представления комплексных чисел.
-data CompExpr = Real Expr | Complex (Expr, Expr) | CBin Op CompExpr CompExpr
-  deriving Show
-
--- Парсер.
-complex :: Parser CompExpr
-complex = simple <|> complex
+-- Комплексный парсер.
+complex :: Parser Expr
+complex = bracket "(" ")" $ sepByComma (token float) (token $ symbol ",")
   where
-    complex = bracket "(" ")" $ sepByComma (token expr) (symbol ",")
-    simple = Real <$> expr
     sepByComma p sep = do
       a <- p
       sep
       b <- p
-      return $ Complex (a, b)
-
+      return $ Complex a b
 
 
 -- Тесты.
 
 exprs :: [String]
 exprs =
-  [ "(4.5 * (-0.2) , 2.18 - 0.2)"
+  [ "(4.5, 2.18)"
   , "4.5"
-  , "(13./3., (-0.15) * 1.)"
+  , "(13.3, 1) * (-3.18)"
+  , " (0, 56) / (2.1, -8) "
+  , "((-1,1)*(-2 , 2) ) /(-3,3)"
   ]
 
-test :: [CompExpr]
-test = parse complex `map` exprs
+parsed :: [Expr]
+parsed =
+  [ Complex 4.5 2.18
+  , Real 4.5
+  , Bin Mul (Complex 13.3 1.0) (Real (-3.18))
+  , Bin Div (Complex 0.0 56.0) (Complex 2.1 (-8.0))
+  , Bin Div (Bin Mul (Complex (-1.0) 1.0) (Complex (-2.0) 2.0))
+      (Complex (-3.0) 3.0)
+  ]
+
+
+test :: Bool
+test = parse expr `map` exprs == parsed

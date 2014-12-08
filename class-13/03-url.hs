@@ -74,9 +74,9 @@ readURL = parse $ execWriterT $ evalTree mainTree
 portParser = Port <$> natural
 pswdParser = Password <$> takeUntil "@"
 hostParser = Host <$> takeUntil ":/"
-lognParser = Login <$> do
-  a <- takeUntil ":@"
-  msum $ map char ":@"
+lognParser = Login <$> do   -- "Сьедает" последний символ.
+  a <- takeUntil ":@"       -- Именно поэтому pswd- и host Tree
+  msum $ map char ":@"      -- имеют такой формат.
   return a
 
 -- Тип для функций - ParserTree.
@@ -102,16 +102,24 @@ anchorTree = PTNode "#" anchorParser [PTLeaf]
 
 -- Тесты.
 
+test :: Bool
 test = readURL `map` testingSetPos == testingAnswers
 
 testingSetPos =
   [ "xxx://site/path?query"
   , "http://usr:pas@site"
   , "x://usr@site:65535"
-  , "ftp://site/path#anch"]
+  , "ftp://site/path#anch"
+  , "ftp://usr@site:1/?query#anch"
+  , "ftp://usr:pas@site:1/path?query#anch"
+  ]
 
 testingAnswers =
   [[UrlScheme (Unk "xxx"), Host "site", FPath "path", Query "query"]
   ,[UrlScheme HTTP,Login "usr",Password "pas",Host "site"]
   ,[UrlScheme (Unk "x"),Login "usr",Host "site",Port 65535]
-  ,[UrlScheme FTP,Host "site",FPath "path",Anchor "anch"]]
+  ,[UrlScheme FTP,Host "site",FPath "path",Anchor "anch"]
+  ,[UrlScheme FTP,Login "usr",Host "site",Port 1,FPath "",Query "query"
+  ,Anchor "anch"]
+  ,[UrlScheme FTP,Login "usr",Password "pas",Host "site",Port 1,FPath "path"
+    ,Query "query",Anchor "anch"]]
