@@ -22,9 +22,10 @@ digit ::=  '0' | '1' | '2' | ... | '9'
 -}
 
 expr :: Parser Expr
-expr = token (constant <|>  bracket "(" ")"  binary)
+expr = token (constant <|>  bracket "(" ")"  (binary <|> braConst))
   where
     constant = Con `liftM` natural
+    braConst = Con `liftM` integer
     binary = do
       e1 <- expr
       p <- op
@@ -33,4 +34,4 @@ expr = token (constant <|>  bracket "(" ")"  binary)
     op = (symbol "+" >> return Plus) <|> (symbol "-" >> return Minus)
 
 test =  parse expr "2" == parse expr "(2)" &&
-        parse expr "((2)+3)" == parse expr "(2+3)" 
+        parse expr "((2)+3)" == parse expr "(2+3)"

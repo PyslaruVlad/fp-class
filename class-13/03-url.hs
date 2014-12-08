@@ -1,9 +1,8 @@
-{-# Language RankNTypes #-}
 import Parser
 import SimpleParsers
 import Control.Applicative hiding (many, optional)
 import Control.Monad
-import ParseNumbers
+import ParseNumbers (natural)
 import Control.Monad.Writer
 
 {-
@@ -74,7 +73,7 @@ readURL = parse $ execWriterT $ evalTree mainTree
 
 -- Не смог придумать как обобщить дерево.
 
--- Тип всех функций - Parser Item.
+-- Тип для функций - Parser Item.
 portParser = Port <$> natural
 pswdParser = Password <$> takeUntil "@"
 hostParser = Host <$> takeUntil ":/"
@@ -87,8 +86,9 @@ lognParser = Login <$> do
 mainTree = PTNode "" (UrlScheme <$> scheme) [lognTree, hostTree "://"]
 lognTree = PTNode "://" lognParser [pswdTree "", hostTree ""]
 pswdTree i = PTNode i pswdParser [hostTree "@"]
+hostTree i = PTNode i hostParser [portTree, tailTree, PTLeaf]
 portTree = PTNode ":" portParser [tailTree, PTLeaf]
-hostTree i = PTNode i hostParser [portTree, tailTree,PTLeaf]
+
 
 -- Тип для функций - Parser Item.
 pathParser = FPath <$> takeUntil "#?"
