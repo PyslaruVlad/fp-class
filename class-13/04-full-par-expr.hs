@@ -33,5 +33,5 @@ expr = token (constant <|>  bracket "(" ")"  (binary <|> braConst))
       return $ Bin p e1 e2
     op = (symbol "+" >> return Plus) <|> (symbol "-" >> return Minus)
 
-test =  parse expr "2" == parse expr "(2)" && 
-        parse expr "((2)+3)" == parse expr "(2+3)"
+test =  parse expr "2" == parse expr "(2)" &&
+        parse expr "((2)+3)" == parse expr "(2+3)" 
