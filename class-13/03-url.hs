@@ -64,9 +64,6 @@ evalTree node = do
 takeUntil :: [Char] -> Parser String
 takeUntil endS = many $ sat $ \ a -> and $ map (/=a) endS
 
-liftP :: (String -> Item) -> [Char] -> Parser Item
-liftP f e = f <$> takeUntil e
-
 readURL :: String -> [Item]
 readURL = parse $ execWriterT $ evalTree mainTree
 
